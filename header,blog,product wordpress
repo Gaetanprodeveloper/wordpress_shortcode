@@ -1,0 +1,438 @@
+
+//header slider
+
+
+function headerSlider(){
+	ob_start();
+	?>
+ <div class="sliderContainer">
+        <div class="innerColumn">
+			<?php
+	
+				// Check rows exists.
+				if( have_rows('headerslider') ):
+
+					// Loop through rows.
+					while( have_rows('headerslider') ) : the_row();
+
+						// Load sub field value.
+						$sub_slide_img = get_sub_field('slide_img');
+						$sub_slide_title = get_sub_field('slide_title');
+						$sub_description = get_sub_field('description');
+						$sub_button= get_sub_field('button');
+						// Do something, but make sure you escape the value if outputting directly...
+?>
+			 <div class="slide" style="background: url('<?php echo $sub_slide_img; ?>');background-position:center ;background-size:cover;">
+				<div class="textWrapper">
+					<h1><?php echo $sub_slide_title; ?></h1>
+				<p><?php echo $sub_description; ?></p>
+				</div>
+				     <div class="btnhome">
+                        <a href="<?php echo $sub_button; ?>">Learn more</a>
+						 <img src="https://serveur5.protaiin.com/wp-content/uploads/2025/05/1-5.svg" alt="Icon" class="button-icon"> 
+                    </div>
+				<span></span>
+            </div>
+			
+			<?php
+					// End loop.
+					endwhile;
+
+				// No value.
+				else :
+					// Do something...
+				endif;
+	
+			?>
+           
+        </div>
+    </div>
+<?php
+	return ob_get_clean();
+}
+
+add_shortcode('headerSlider','headerSlider');
+
+
+
+
+
+
+function firstProductQuery($atts = array()){
+    ob_start();
+
+    $default_atts = array(
+        'product_per_page' => 5,
+        'product_category' => ''
+    );
+
+    $atts = shortcode_atts($default_atts, $atts);
+
+    $args = array(
+        'post_type'      => 'product',
+        'posts_per_page' => $atts['product_per_page'],
+        'product_cat'    => $atts['product_category']
+    );
+
+    $products = new WP_Query($args);
+
+    ?>
+    <div class="productQuery">
+        <div class="productWrapper">
+            <?php
+            if ($products->have_posts()) {
+                while ($products->have_posts()) {
+                    $products->the_post();
+                    global $product; // Access WooCommerce product object
+                    $woo_price = $product->get_price();
+            ?>
+                <div class="productItems">
+                    <div class="productImg" style="position: relative;">
+                        <a href="?add_to_wishlist=<?php echo $product->get_id(); ?>" class="wishlist-icon" style="position: absolute; top: 10px; left: 10px;">
+                            <img src="https://serveur5.protaiin.com/wp-content/uploads/2025/05/4.svg" alt="Add to Cart" style="width: 20px; height: 20px;" />
+                        </a>
+                        <div style="background: url('<?php the_post_thumbnail_url('full'); ?>');background-position:center ;background-size:contain; background-repeat: no-repeat; height: 250px;"></div>
+                    </div>
+                    <div class="text_produit">
+                        <div class="nom_produit">
+                            <h2><?php the_title(); ?></h2>
+                        </div>
+                        <div class="marque_produit">
+                            <p><?php echo $atts['product_category']; ?></p>
+                        </div>
+                        <div class="priceProduit">
+                            <p> <?php echo empty($woo_price) ? '0,0' : $woo_price; ?> FCFA</p>
+                        </div>
+                        <div class="btnProduit" style="display: flex; align-items: center;">
+                            <a href="<?php the_permalink(); ?>" class="button add-to-cart" style="margin-right: 10px;">Buy</a>
+                           <a href="<?php echo esc_url( $product->add_to_cart_url() ); ?>" class="add-image-icon">
+    <img src="https://serveur5.protaiin.com/wp-content/uploads/2025/05/1-6.svg" alt="Add to Cart" style="width: 20px; height: 20px;" />
+</a>
+
+                        </div>
+                    </div>
+                </div>
+            <?php
+                }
+            }
+            wp_reset_postdata();
+            ?>
+        </div>
+    </div>
+<?php
+    return ob_get_clean();
+}
+
+add_shortcode('firstProductQuery','firstProductQuery');
+
+
+
+
+
+
+//product  all
+
+function allProductQuery($atts = array()) {
+    ob_start();
+
+    $default_atts = array(
+        'product_per_page' => 8,
+        'product_category' => isset($_GET['product_cat']) ? sanitize_text_field($_GET['product_cat']) : ''
+    );
+
+    $atts = shortcode_atts($default_atts, $atts);
+
+    // Handle pagination
+    $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+
+    // Build query args
+    $args = array(
+        'post_type'      => 'product',
+        'posts_per_page' => $atts['product_per_page'],
+        'paged'          => $paged,
+    );
+
+    if (!empty($atts['product_category'])) {
+        $args['product_cat'] = $atts['product_category'];
+    }
+
+    $products = new WP_Query($args);
+
+    // Get all product categories
+    $categories = get_terms(array(
+        'taxonomy'   => 'product_cat',
+        'hide_empty' => false,
+    ));
+    ?>
+
+    <div class="productQueryall">
+        <!-- Category Dropdown Filter -->
+        <form method="get" id="product-category-filter" style="margin-bottom: 20px;">
+            <select name="product_cat" onchange="document.getElementById('product-category-filter').submit();" style="padding: 8px; font-size: 16px;">
+                <option value="">All Categories</option>
+                <?php foreach ($categories as $category): ?>
+                    <option value="<?php echo esc_attr($category->slug); ?>" <?php selected($atts['product_category'], $category->slug); ?>>
+                        <?php echo esc_html($category->name); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </form>
+
+        <div class="productWrapperall">
+            <?php
+            if ($products->have_posts()) {
+                while ($products->have_posts()) {
+                    $products->the_post();
+                    global $product;
+                    $woo_price = $product->get_price();
+                    ?>
+                    <div class="productItemsall">
+                        <div class="productImg" style="position: relative;">
+                            <a href="?add_to_wishlist=<?php echo $product->get_id(); ?>" class="wishlist-icon" style="position: absolute; top: 10px; left: 10px;">
+                                <img src="https://serveur5.protaiin.com/wp-content/uploads/2025/05/4.svg" alt="Add to Wishlist" style="width: 20px; height: 20px;" />
+                            </a>
+                            <div style="background: url('<?php the_post_thumbnail_url('full'); ?>'); background-position:center; background-size:contain; background-repeat:no-repeat; height: 250px;"></div>
+                        </div>
+                        <div class="text_produit">
+                            <div class="nom_produit"><h2><?php the_title(); ?></h2></div>
+                            <div class="marque_produit"><p><?php echo $atts['product_category']; ?></p></div>
+                            <div class="priceProduit"><p><?php echo empty($woo_price) ? '0,0' : $woo_price; ?> FCFA</p></div>
+                            <div class="btnProduit" style="display: flex; align-items: center;">
+                                <a href="<?php the_permalink(); ?>" class="button add-to-cart" style="margin-right: 10px;">Buy</a>
+                                <a href="<?php echo esc_url($product->add_to_cart_url()); ?>" class="add-image-icon">
+                                    <img src="https://serveur5.protaiin.com/wp-content/uploads/2025/05/1-6.svg" alt="Add to Cart" style="width: 20px; height: 20px;" />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <?php
+                }
+            } else {
+                echo "<p>No products found.</p>";
+            }
+            ?>
+        </div>
+
+        <!-- Pagination / View More Button -->
+        <div class="pagination-wrapper" style="text-align: center; margin-top: 30px;">
+            <?php
+            $big = 999999999;
+            echo paginate_links(array(
+                'base'      => str_replace($big, '%#%', esc_url(get_pagenum_link($big))),
+                'format'    => '?paged=%#%' . (!empty($atts['product_category']) ? '&product_cat=' . $atts['product_category'] : ''),
+                'current'   => max(1, $paged),
+                'total'     => $products->max_num_pages,
+                'prev_text' => __('«'),
+                'next_text' => __('View More »'),
+                'type'      => 'list',
+            ));
+            ?>
+        </div>
+    </div>
+
+    <?php
+    wp_reset_postdata();
+    return ob_get_clean();
+}
+add_shortcode('allProductQuery','allProductQuery');
+
+
+//call category
+
+function custom_product_category_sidebar() {
+    ob_start();
+
+    $current_cat = get_query_var('product_cat');
+    $categories = get_terms(array(
+        'taxonomy'   => 'product_cat',
+        'hide_empty' => true,
+    ));
+    ?>
+    <div class="sidebar-categories">
+        <form method="get" action="" id="sidebar-category-filter">
+            <!-- All Categories Option -->
+            <label class="category-item">
+                <input
+                    type="checkbox"
+                    name="product_cat"
+                    value=""
+                    onchange="document.getElementById('sidebar-category-filter').submit();"
+                    <?php checked($current_cat, ''); ?>
+                />
+                <span class="category-name <?php echo empty($current_cat) ? 'active' : ''; ?>">
+                    All Categories
+                </span>
+            </label>
+
+            <!-- Loop through actual categories -->
+            <?php foreach ($categories as $category): ?>
+                <label class="category-item">
+                    <input
+                        type="checkbox"
+                        name="product_cat"
+                        value="<?php echo esc_attr($category->slug); ?>"
+                        onchange="document.getElementById('sidebar-category-filter').submit();"
+                        <?php checked($current_cat, $category->slug); ?>
+                    />
+                    <span class="category-name <?php echo ($current_cat === $category->slug) ? 'active' : ''; ?>">
+                        <?php echo esc_html($category->name); ?>
+                    </span>
+                </label>
+            <?php endforeach; ?>
+			         <?php if (!empty($current_sort)): ?>
+                <input type="hidden" name="product_sort" value="<?php echo esc_attr($current_sort); ?>">
+            <?php endif; ?>
+        </form>
+    </div>
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('product_category_sidebar', 'custom_product_category_sidebar');
+
+
+
+function custom_product_sort_sidebar() {
+    ob_start();
+
+    $current_sort = isset($_GET['product_sort']) ? sanitize_text_field($_GET['product_sort']) : '';
+    $current_cat = isset($_GET['product_cat']) ? sanitize_text_field($_GET['product_cat']) : '';
+
+    ?>
+    <div class="sidebar-categories">
+        <form method="get" action="" id="sidebar-sort-filter">
+
+            <!-- Default Sorting -->
+            <label class="category-item">
+                <input
+                    type="checkbox"
+                    name="product_sort"
+                    value=""
+                    onchange="document.getElementById('sidebar-sort-filter').submit();"
+                    <?php checked($current_sort, ''); ?>
+                />
+                <span class="category-name <?php echo empty($current_sort) ? 'active' : ''; ?>">
+                    All categories
+                </span>
+            </label>
+
+            <!-- Promotion -->
+            <label class="category-item">
+                <input
+                    type="checkbox"
+                    name="product_sort"
+                    value="promotion"
+                    onchange="document.getElementById('sidebar-sort-filter').submit();"
+                    <?php checked($current_sort, 'promotion'); ?>
+                />
+                <span class="category-name <?php echo ($current_sort === 'promotion') ? 'active' : ''; ?>">
+                    Promotion
+                </span>
+            </label>
+
+            <!-- Most Sale -->
+            <label class="category-item">
+                <input
+                    type="checkbox"
+                    name="product_sort"
+                    value="most_sale"
+                    onchange="document.getElementById('sidebar-sort-filter').submit();"
+                    <?php checked($current_sort, 'most_sale'); ?>
+                />
+                <span class="category-name <?php echo ($current_sort === 'most_sale') ? 'active' : ''; ?>">
+                    Most sold
+                </span>
+            </label>
+
+            <!-- Recent Products -->
+            <label class="category-item">
+                <input
+                    type="checkbox"
+                    name="product_sort"
+                    value="recent"
+                    onchange="document.getElementById('sidebar-sort-filter').submit();"
+                    <?php checked($current_sort, 'recent'); ?>
+                />
+                <span class="category-name <?php echo ($current_sort === 'recent') ? 'active' : ''; ?>">
+                    Recent Products
+                </span>
+            </label>
+
+            <?php if (!empty($current_cat)): ?>
+                <input type="hidden" name="product_cat" value="<?php echo esc_attr($current_cat); ?>">
+            <?php endif; ?>
+
+        </form>
+    </div>
+    <?php
+
+    return ob_get_clean();
+}
+add_shortcode('product_sort_sidebar', 'custom_product_sort_sidebar');
+
+
+
+//blog post customisation
+
+function blogPosts() {
+    ob_start();
+
+    $args = array(
+        'post_type'      => 'post',
+        'posts_per_page' => 3,
+        'meta_query'     => array(
+            array(
+                'key'     => '_thumbnail_id',
+                'compare' => 'EXISTS'
+            )
+        )
+    );
+
+    $query = new WP_Query($args);
+
+    if ($query->have_posts()) : ?>
+        <div class="blogContainer">
+            <?php while ($query->have_posts()) : $query->the_post(); 
+                $date = get_the_date('F j, Y');
+                $title = get_the_title();
+                $excerpt = wp_trim_words(get_the_excerpt(), 20, '...');
+                $thumbnail_url = get_the_post_thumbnail_url(get_the_ID(), 'full');
+                $permalink = get_permalink();
+            ?>
+                <div class="blogBox">
+                    <div class="blogImg" style="
+                        background: url('<?php echo esc_url($thumbnail_url); ?>');
+                        background-position: center;
+                        background-size: cover;
+                        position: relative;
+                        min-height: 200px;
+                        border-top-left-radius: 10px;
+                        border-top-right-radius: 10px;
+                    ">
+                        <a href="<?php echo esc_url($permalink); ?>" style="position:absolute;top:0;left:0;bottom:0;right:0;"></a>
+                    </div>
+                    <div class="textContent">
+                        <div class="blogTitle">
+							<p class="blogDate"><?php echo esc_html($date); ?></p>
+                            <a href="<?php echo esc_url($permalink); ?>">
+                                <h2><?php echo esc_html(mb_strimwidth($title, 0, 40, '...')); ?></h2>
+                            </a>
+                            
+                        </div>
+                        <div class="blogExcerpt">
+                            <p><?php echo esc_html($excerpt); ?></p>
+                        </div>
+                        <div class="blogBtn">
+                            <a href="<?php echo esc_url($permalink); ?>">Read more</a>
+                        </div>
+                    </div>
+                </div>
+            <?php endwhile; ?>
+        </div>
+    <?php else : ?>
+        <p>Aucun article trouvé.</p>
+    <?php endif;
+
+    wp_reset_postdata();
+    return ob_get_clean();
+}
+add_shortcode('blogPosts', 'blogPosts');
