@@ -436,3 +436,126 @@ function blogPosts() {
     return ob_get_clean();
 }
 add_shortcode('blogPosts', 'blogPosts');
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bxslider@4.2.17/dist/jquery.bxslider.min.js"></script>
+<script>
+		jQuery(document).ready(function($){
+			$('.innerColumn').bxSlider({
+				auto:true,
+				touchEnabled:false,
+				pager: true,
+				controls: false
+			});
+		})
+	
+jQuery(document).ready(function($) {
+    function getBxSliderSettings() {
+        var screenWidth = $(window).width();
+        var settings = {
+            auto: true,
+            touchEnabled: true,
+            pager: true,
+            controls: false,
+            moveSlides: 1,
+            slideWidth: 537,
+            slideMargin: 20,
+            pause: 6000
+        };
+
+        if (screenWidth < 768) { // Mobile
+            settings.minSlides = 1;
+            settings.maxSlides = 1;
+            settings.slideWidth = 537;
+            settings.slideMargin = 10;
+        } 
+        else if (screenWidth < 1024) { // Tablet
+            settings.minSlides = 2;
+            settings.maxSlides = 2;
+            settings.slideWidth = 400;
+            settings.slideMargin = 15;
+        } 
+        else { // Desktop
+            settings.minSlides = 3;
+            settings.maxSlides = 3;
+            settings.slideWidth = 537;
+            settings.slideMargin = 20;
+        }
+        
+        return settings;
+    }
+
+    function initializeSlider() {
+        var settings = getBxSliderSettings();
+        return $('.productWrappers').bxSlider(settings);
+    }
+
+    var slider = initializeSlider();
+
+    // Debounced resize handler to prevent multiple triggers
+    var resizeTimer;
+    $(window).resize(function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            slider.destroySlider();
+            slider = initializeSlider();
+        }, 250);
+    });
+});
+jQuery(document).ready(function($) {
+    function getBxSliderSettings() {
+        var screenWidth = $(window).width();
+        var settings = {
+            auto: true,
+            touchEnabled: true, // Enabled for mobile
+            pager: true,
+            controls: false,
+            moveSlides: 1,
+            slideWidth: 280,
+            slideMargin: 20,
+            pause: 6000
+        };
+
+        if (screenWidth < 768) { // Mobile
+            settings.minSlides = 1;
+            settings.maxSlides = 1;
+            settings.slideWidth = 250;
+            settings.slideMargin = 10;
+        } 
+        else if (screenWidth < 1024) { // Tablet
+            settings.minSlides = 2;
+            settings.maxSlides = 2;
+            settings.slideWidth = 260;
+            settings.slideMargin = 15;
+        } 
+        else { // Desktop
+            settings.minSlides = 5;
+            settings.maxSlides = 5;
+            settings.slideWidth = 280;
+            settings.slideMargin = 20;
+        }
+        
+        return settings;
+    }
+
+    function initializeSlider() {
+        var settings = getBxSliderSettings();
+        return $('.productWrapperss').bxSlider(settings);
+    }
+
+    var slider = initializeSlider();
+
+    // Debounced resize handler
+    var resizeTimer;
+    $(window).resize(function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            slider.destroySlider();
+            slider = initializeSlider();
+        }, 250);
+    });
+});
+</script>
+</body>
+</html>
